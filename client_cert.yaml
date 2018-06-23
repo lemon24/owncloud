@@ -1,0 +1,55 @@
+
+- name: create dir
+  local_action:
+    module: file
+    path: "{{ outdir }}/client"
+    state: directory
+
+- name: create private key
+  local_action:
+    module: openssl_privatekey
+    passphrase: "{{ passphrase }}"
+    path: "{{ outdir }}/client/{{ name }}.pem"
+    state: present
+    cipher: aes256
+
+- name: create CSR
+  local_action:
+    module: openssl_csr
+    privatekey_path: "{{ outdir }}/client/{{ name }}.pem"
+    privatekey_passphrase: "{{ passphrase }}"
+    path: "{{ outdir }}/client/{{ name }}.csr"
+    state: present
+    common_name: "{{ name }}"
+
+- name: create certificate
+  local_action:
+    module: openssl_certificate_latest
+    ownca_path: "{{ outdir }}/ca/ca.crt"
+    ownca_privatekey_path: "{{ outdir }}/ca/ca.pem"
+    ownca_privatekey_passphrase: "{{ passphrase }}"
+    csr_path: "{{ outdir }}/client/{{ name }}.csr"
+    path: "{{ outdir }}/client/{{ name }}.crt"
+    state: present
+    provider: ownca
+
+# could have used this instead:
+# https://gist.github.com/gdelpierre/eecb5d990e5f79d84760da784841f085
+- name: create pkcs12
+  local_action:
+    module: expect
+    command: "openssl pkcs12 -export -clcerts -in {{ outdir }}/client/{{ name }}.crt -inkey {{ outdir }}/client/{{ name }}.pem -out {{ outdir }}/client/{{ name }}.p12"
+    responses:
+      "Enter pass phrase for": "{{ passphrase }}"
+      "Enter Export Password": ""
+    echo: true
+
+- name: delete unneeded files
+  local_action:
+    module: file
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ outdir }}/client/{{ name }}.pem"
+    - "{{ outdir }}/client/{{ name }}.csr"
+    - "{{ outdir }}/client/{{ name }}.crt"

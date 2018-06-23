@@ -1,0 +1,44 @@
+
+- name: create dir
+  local_action:
+    module: file
+    path: "{{ outdir }}/server"
+    state: directory
+
+- name: create private key
+  local_action:
+    module: openssl_privatekey
+    passphrase: "{{ passphrase }}"
+    path: "{{ outdir }}/server/{{ domain }}.pem"
+    state: present
+    cipher: aes256
+
+- name: create CSR
+  local_action:
+    module: openssl_csr
+    privatekey_path: "{{ outdir }}/server/{{ domain }}.pem"
+    privatekey_passphrase: "{{ passphrase }}"
+    path: "{{ outdir }}/server/{{ domain }}.csr"
+    state: present
+    common_name: "{{ domain }}"
+    subject_alt_name: "DNS:{{ domain }}"
+
+- name: create certificate
+  local_action:
+    module: openssl_certificate_latest
+    ownca_path: "{{ outdir }}/ca/ca.crt"
+    ownca_privatekey_path: "{{ outdir }}/ca/ca.pem"
+    ownca_privatekey_passphrase: "{{ passphrase }}"
+    csr_path: "{{ outdir }}/server/{{ domain }}.csr"
+    path: "{{ outdir }}/server/{{ domain }}.crt"
+    state: present
+    provider: ownca
+
+- name: delete unneeded files
+  local_action:
+    module: file
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ outdir }}/server/{{ domain }}.csr"
+

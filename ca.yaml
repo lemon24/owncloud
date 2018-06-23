@@ -1,0 +1,44 @@
+
+- hosts: localhost
+  vars:
+    outdir: out/
+    passphrase: passphrase
+  tasks:
+
+  - name: create dir
+    file:
+      path: "{{ outdir }}/ca"
+      state: directory
+
+  - name: create private key
+    openssl_privatekey:
+      passphrase: "{{ passphrase }}"
+      path: "{{ outdir }}/ca/ca.pem"
+      state: present
+      cipher: aes256
+
+  - name: create CSR
+    openssl_csr:
+      privatekey_path: "{{ outdir }}/ca/ca.pem"
+      privatekey_passphrase: "{{ passphrase }}"
+      path: "{{ outdir }}/ca/ca.csr"
+      state: present
+      common_name: moremagic
+
+  - name: create certificate
+    openssl_certificate:
+      privatekey_path: "{{ outdir }}/ca/ca.pem"
+      privatekey_passphrase: "{{ passphrase }}"
+      csr_path: "{{ outdir }}/ca/ca.csr"
+      path: "{{ outdir }}/ca/ca.crt"
+      state: present
+      provider: selfsigned
+
+  - name: delete unneeded files
+    local_action:
+      module: file
+      path: "{{ item }}"
+      state: absent
+    loop:
+      - "{{ outdir }}/ca/ca.csr"
+

@@ -1,0 +1,9 @@
+
+- hosts: all
+  gather_facts: no
+  vars:
+    outdir: out/
+    passphrase: passphrase
+  tasks:
+  - import_tasks: server_cert.yaml
+

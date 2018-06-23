@@ -1,0 +1,12 @@
+
+- hosts: localhost
+  gather_facts: no
+  vars:
+    outdir: out/
+    passphrase: passphrase
+  tasks:
+  - include_tasks: client_cert.yaml
+    loop:
+      - user
+    loop_control:
+      loop_var: name
