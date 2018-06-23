@@ -1,39 +1,49 @@
 
-- hosts: all
-  become: true
-  become_method: sudo
-  tasks:
+- name: install nginx
+  package:
+    name: nginx
+    state: latest
 
-  - name: install nginx
-    package:
-      name: nginx
-      state: latest
+- name: remove nginx default site
+  file:
+    state: absent
+    path: "/etc/nginx/sites-enabled/default"
 
-  - name: remove nginx default site
-    file:
-      state: absent
-      path: "/etc/nginx/sites-enabled/default"
-
-  - name: create cert dirs
-    file:
+- name: create cert dirs
+  file:
     path: "{{ item }}"
-      state: directory
-      owner: root
-      with_items:
-        - /etc/nginx/certs/
-        - /etc/nginx/certs/server
-        - /etc/nginx/certs/ca
+    state: directory
+    owner: root
+  with_items:
+    - /etc/nginx/certs/
+    - /etc/nginx/certs/server
+    - /etc/nginx/certs/ca
 
-  # TODO: permissions
-  - name: copy certs
-    copy:
-      src: "{{ item }}"
-      dest: "/etc/nginx/certs/{{ item }}"
-      owner: root
-      with_items:
-        - server/{{ domain }}.crt
-        - server/{{ domain }}.key
-        - ca/ca.crt
+# TODO: permissions
+- name: copy certs
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/certs/{{ item | relpath(outdir) }}"
+    owner: root
+  with_items:
+    - "{{ outdir }}/server/{{ domain }}.crt"
+    - "{{ outdir }}/server/{{ domain }}.key"
+    - "{{ outdir }}/ca/ca.crt"
+   
+- name: copy server config
+  template:
+    src: secure.conf
+    dest: /etc/nginx/sites-available/secure.conf
+
+- name: enable server config
+  file:
+    path: /etc/nginx/sites-enabled/secure.conf
+    src: /etc/nginx/sites-available/secure.conf
+    state: link
+   
+- name: reload server config
+  command: nginx -s reload
+ 
 
 
 # TODO: in different playbook: set up /dev/x
@@ -49,8 +59,4 @@
 #LABEL=cloudimg-rootfs	/	 ext4	defaults,discard	0 0
 #/dev/xvdb		/data	 ext4 	defaults,nofail		0 2
 
-# TODO: copy server config (template secure.conf)
-
-# TODO: enable server config
-#sudo ln -s /etc/nginx/sites-available/secure.conf /etc/nginx/sites-enabled/secure.conf
 

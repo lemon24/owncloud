@@ -6,4 +6,6 @@
     passphrase: passphrase
   tasks:
   - import_tasks: server_cert.yaml
-
+  - import_tasks: nginx.yaml
+    become: true
+    become_method: sudo

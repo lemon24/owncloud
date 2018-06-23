@@ -8,32 +8,36 @@
 - name: create private key
   local_action:
     module: openssl_privatekey
-    passphrase: "{{ passphrase }}"
-    path: "{{ outdir }}/server/{{ domain }}.pem"
+    path: "{{ outdir }}/server/{{ domain }}.key"
     state: present
-    cipher: aes256
 
+- name: check certificate exists
+  local_action:
+    module: stat
+    path: "{{ outdir }}/server/{{ domain }}.crt"
+  register: cert_stat
+   
 - name: create CSR
   local_action:
     module: openssl_csr
-    privatekey_path: "{{ outdir }}/server/{{ domain }}.pem"
-    privatekey_passphrase: "{{ passphrase }}"
+    privatekey_path: "{{ outdir }}/server/{{ domain }}.key"
     path: "{{ outdir }}/server/{{ domain }}.csr"
     state: present
     common_name: "{{ domain }}"
-    subject_alt_name: "DNS:{{ domain }}"
+  when: not cert_stat.stat.exists
 
 - name: create certificate
   local_action:
     module: openssl_certificate_latest
     ownca_path: "{{ outdir }}/ca/ca.crt"
-    ownca_privatekey_path: "{{ outdir }}/ca/ca.pem"
+    ownca_privatekey_path: "{{ outdir }}/ca/ca.key"
     ownca_privatekey_passphrase: "{{ passphrase }}"
     csr_path: "{{ outdir }}/server/{{ domain }}.csr"
     path: "{{ outdir }}/server/{{ domain }}.crt"
     state: present
     provider: ownca
-
+  when: not cert_stat.stat.exists
+   
 - name: delete unneeded files
   local_action:
     module: file

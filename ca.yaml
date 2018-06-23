@@ -13,26 +13,46 @@
   - name: create private key
     openssl_privatekey:
       passphrase: "{{ passphrase }}"
-      path: "{{ outdir }}/ca/ca.pem"
+      path: "{{ outdir }}/ca/ca.key"
       state: present
       cipher: aes256
 
-  - name: create CSR
-    openssl_csr:
-      privatekey_path: "{{ outdir }}/ca/ca.pem"
-      privatekey_passphrase: "{{ passphrase }}"
-      path: "{{ outdir }}/ca/ca.csr"
-      state: present
-      common_name: moremagic
-
-  - name: create certificate
-    openssl_certificate:
-      privatekey_path: "{{ outdir }}/ca/ca.pem"
-      privatekey_passphrase: "{{ passphrase }}"
-      csr_path: "{{ outdir }}/ca/ca.csr"
+  # Sadly, I can't persuade openssl_certificate to generate a CA cert (commented below).
+  - name: check certificate exists
+    local_action:
+      module: stat
       path: "{{ outdir }}/ca/ca.crt"
-      state: present
-      provider: selfsigned
+    register: cert_stat
+  - name: create certificate
+    local_action:
+      module: expect
+      command: "openssl req -new -x509 -sha256 -days 3650 -key {{ outdir }}/ca/ca.key -out {{ outdir }}/ca/ca.crt"
+      responses:
+        "Enter pass phrase for": "{{ passphrase }}"
+        "Country Name": "."
+        "State or Province Name": "."
+        "Locality Name": "."
+        "Organization Name": "."
+        "Organizational Unit Name": "."
+        "Common Name": moremagic
+        "Email Address": "."
+    when: not cert_stat.stat.exists
+
+  #- name: create CSR
+    #openssl_csr:
+      #privatekey_path: "{{ outdir }}/ca/ca.key"
+      #privatekey_passphrase: "{{ passphrase }}"
+      #path: "{{ outdir }}/ca/ca.csr"
+      #state: present
+      #common_name: moremagic
+  #- name: create certificate
+    #openssl_certificate:
+      #privatekey_path: "{{ outdir }}/ca/ca.key"
+      #privatekey_passphrase: "{{ passphrase }}"
+      #csr_path: "{{ outdir }}/ca/ca.csr"
+      #path: "{{ outdir }}/ca/ca.crt"
+      #state: present
+      #provider: selfsigned
 
   - name: delete unneeded files
     local_action:

@@ -9,14 +9,14 @@
   local_action:
     module: openssl_privatekey
     passphrase: "{{ passphrase }}"
-    path: "{{ outdir }}/client/{{ name }}.pem"
+    path: "{{ outdir }}/client/{{ name }}.key"
     state: present
     cipher: aes256
 
 - name: create CSR
   local_action:
     module: openssl_csr
-    privatekey_path: "{{ outdir }}/client/{{ name }}.pem"
+    privatekey_path: "{{ outdir }}/client/{{ name }}.key"
     privatekey_passphrase: "{{ passphrase }}"
     path: "{{ outdir }}/client/{{ name }}.csr"
     state: present
@@ -26,7 +26,7 @@
   local_action:
     module: openssl_certificate_latest
     ownca_path: "{{ outdir }}/ca/ca.crt"
-    ownca_privatekey_path: "{{ outdir }}/ca/ca.pem"
+    ownca_privatekey_path: "{{ outdir }}/ca/ca.key"
     ownca_privatekey_passphrase: "{{ passphrase }}"
     csr_path: "{{ outdir }}/client/{{ name }}.csr"
     path: "{{ outdir }}/client/{{ name }}.crt"
@@ -38,11 +38,10 @@
 - name: create pkcs12
   local_action:
     module: expect
-    command: "openssl pkcs12 -export -clcerts -in {{ outdir }}/client/{{ name }}.crt -inkey {{ outdir }}/client/{{ name }}.pem -out {{ outdir }}/client/{{ name }}.p12"
+    command: "openssl pkcs12 -export -clcerts -in {{ outdir }}/client/{{ name }}.crt -inkey {{ outdir }}/client/{{ name }}.key -out {{ outdir }}/client/{{ name }}.p12"
     responses:
       "Enter pass phrase for": "{{ passphrase }}"
       "Enter Export Password": ""
-    echo: true
 
 - name: delete unneeded files
   local_action:
@@ -50,6 +49,6 @@
     path: "{{ item }}"
     state: absent
   loop:
-    - "{{ outdir }}/client/{{ name }}.pem"
+    - "{{ outdir }}/client/{{ name }}.key"
     - "{{ outdir }}/client/{{ name }}.csr"
     - "{{ outdir }}/client/{{ name }}.crt"
