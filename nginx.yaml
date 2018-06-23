@@ -1,0 +1,56 @@
+
+- hosts: all
+  become: true
+  become_method: sudo
+  tasks:
+
+  - name: install nginx
+    package:
+      name: nginx
+      state: latest
+
+  - name: remove nginx default site
+    file:
+      state: absent
+      path: "/etc/nginx/sites-enabled/default"
+
+  - name: create cert dirs
+    file:
+    path: "{{ item }}"
+      state: directory
+      owner: root
+      with_items:
+        - /etc/nginx/certs/
+        - /etc/nginx/certs/server
+        - /etc/nginx/certs/ca
+
+  # TODO: permissions
+  - name: copy certs
+    copy:
+      src: "{{ item }}"
+      dest: "/etc/nginx/certs/{{ item }}"
+      owner: root
+      with_items:
+        - server/{{ domain }}.crt
+        - server/{{ domain }}.key
+        - ca/ca.crt
+
+
+# TODO: in different playbook: set up /dev/x
+
+ #48  sudo mkfs -t ext4 /dev/xvdb
+ #50  sudo mkdir /data
+ #51  sudo mount /dev/xvdb /data
+ #54  sudo cp /etc/fstab /etc/fstab.orig
+ #59  sudo vim /etc/fstab
+ #60  sudo reboot
+
+#$ cat /etc/fstab
+#LABEL=cloudimg-rootfs	/	 ext4	defaults,discard	0 0
+#/dev/xvdb		/data	 ext4 	defaults,nofail		0 2
+
+# TODO: copy server config (template secure.conf)
+
+# TODO: enable server config
+#sudo ln -s /etc/nginx/sites-available/secure.conf /etc/nginx/sites-enabled/secure.conf
+
