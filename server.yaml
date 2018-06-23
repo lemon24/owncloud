@@ -9,3 +9,7 @@
   - import_tasks: nginx.yaml
     become: true
     become_method: sudo
+  - import_tasks: data.yaml
+    become: true
+    become_method: sudo
+

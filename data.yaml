@@ -1,0 +1,21 @@
+
+- name: make filesystem
+  filesystem:
+    dev: /dev/xvdb
+    type: ext4
+
+# TODO: permissions
+- name: create mountpoint
+  file:
+    path: /data
+    state: directory
+
+- name: mount filesystem
+  mount:
+    state: mounted
+    fstype: ext4
+    path: /data
+    src: /dev/xvdb
+    opts: defaults,nofail
+    passno: 2
+
