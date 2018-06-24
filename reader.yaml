@@ -1,0 +1,112 @@
+
+- hosts: all
+  gather_facts: no
+  become: true
+  become_method: sudo
+  tasks:
+
+  - name: create apps directory
+    file:
+      path: /apps
+      state: directory
+
+
+  - name: install uwsgi
+    package:
+      name: "{{ item }}"
+      state: latest
+    loop:
+      - uwsgi
+      - uwsgi-plugin-python3
+
+  # TODO: stop uwsgi reader service, remove from nginx, remove virtualenv
+
+  - name: install venv
+    package:
+      name: python3-venv
+      state: latest
+
+  - name: create virtualenv with reader
+    pip:
+      name: git+https://github.com/lemon24/reader.git
+      virtualenv: /apps/reader
+      virtualenv_command: /usr/bin/python3 -m venv
+      virtualenv_site_packages: yes
+      state: latest
+
+  - name: create database directory
+    file:
+      path: /data/www-data
+      state: directory
+      owner: www-data
+
+  - name: create app file
+    copy:
+      dest: /apps/reader/app.py
+      content: |
+        from reader.app import create_app
+        app = create_app('/data/www-data/reader.sqlite')
+
+  # TODO: should use emperor
+  - name: create uwsgi config file
+    copy:
+      dest: /apps/reader/uwsgi.ini
+      content: |
+        [uwsgi]
+        socket = /apps/reader/uwsgi/sock
+        manage-script-name = true
+        mount = /reader=app:app
+        plugin = python3
+        virtualenv = /apps/reader/
+        env = PYTHONPATH=/apps/reader
+
+  # TODO: permissions
+  - name: create uwsgi socket dir
+    file:
+      path: /apps/reader/uwsgi
+      state: directory
+      owner: www-data
+
+  - name: create uwsgi reader service
+    copy:
+      dest: /etc/systemd/system/uwsgi_reader.service
+      content: |
+        [Unit]
+        Description=uwsgi reader
+        After=syslog.target
+
+        [Service]
+        User=www-data
+        ExecStart=/usr/bin/uwsgi --ini /apps/reader/uwsgi.ini
+        Restart=always
+        KillSignal=SIGQUIT
+        Type=notify
+        StandardError=syslog
+        NotifyAccess=all
+
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: restart uwsgi reader service
+    service:
+      name: uwsgi_reader
+      state: restarted
+
+  - name: add nginx config
+    copy:
+      dest: /etc/nginx/secure/reader.conf
+      content: |
+        location /reader/ {
+            include uwsgi_params;
+            uwsgi_pass unix:/apps/reader/uwsgi/sock;
+        }
+
+        location = /reader { rewrite ^ /reader/; }
+
+        location /reader/static/ {
+            alias /apps/reader/lib/python3.5/site-packages/reader/static/;
+        }
+
+  - name: reload nginx config
+    command: nginx -s reload
+

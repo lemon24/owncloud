@@ -29,7 +29,12 @@
     - "{{ outdir }}/server/{{ domain }}.crt"
     - "{{ outdir }}/server/{{ domain }}.key"
     - "{{ outdir }}/ca/ca.crt"
-   
+
+- name: create includes directory
+  file:
+    path: /etc/nginx/secure
+    state: directory
+    
 - name: copy server config
   template:
     src: secure.conf
