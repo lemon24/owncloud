@@ -27,7 +27,8 @@ Set server up:
 This will:
 
 * generate the server certificate
-* TODO: set up nginx
+* set up nginx (with mutual authentication)
+* mount /dev/xvdb on /data
 
 ### Create client certificate
 
