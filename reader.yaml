@@ -110,3 +110,6 @@
   - name: reload nginx config
     command: nginx -s reload
 
+  # TODO: add update cron
+  # TODO: backup database to s3
+
