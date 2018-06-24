@@ -34,6 +34,45 @@
       virtualenv_site_packages: yes
       state: latest
 
+  - name: install packages needed to build sqlite
+    package:
+      name: "{{ item }}"
+      state: latest
+    loop:
+      - gcc
+      - unzip
+
+  # From https://github.com/lemon24/reader/blob/master/build-sqlite.sh
+  - name: compile new enough sqlite
+    shell: |
+
+      cd /apps/reader/
+
+      if [ ! -e /apps/reader/sqlite/libsqlite3.so.0 ]; then
+          echo "compiling sqlite"
+          wget https://sqlite.org/2018/sqlite-amalgamation-3220000.zip
+          unzip sqlite-amalgamation-3220000.zip
+          rm sqlite-amalgamation-3220000.zip
+          mv sqlite-amalgamation-3220000 sqlite
+          cd sqlite
+          gcc -c -fPIC -O2 -I. \
+              -DSQLITE_THREADSAFE=0 \
+              -DSQLITE_ENABLE_FTS4 \
+              -DSQLITE_ENABLE_FTS5 \
+              -DSQLITE_ENABLE_JSON1 \
+              -DSQLITE_ENABLE_RTREE \
+              -DSQLITE_ENABLE_EXPLAIN_COMMENTS \
+              -DHAVE_USLEEP \
+              sqlite3.c
+          gcc -shared -o libsqlite3.so -fPIC sqlite3.o -ldl -lpthread
+          ln -s libsqlite3.so libsqlite3.so.0
+          cd ..
+      else
+          echo "using existing sqlite"
+      fi
+
+      exit 0
+
   - name: create database directory
     file:
       path: /data/www-data
@@ -77,7 +116,7 @@
 
         [Service]
         User=www-data
-        ExecStart=/usr/bin/uwsgi --ini /apps/reader/uwsgi.ini
+        ExecStart=/bin/sh -c 'LD_LIBRARY_PATH=/apps/reader/sqlite:$LD_LIBRARY_PATH /usr/bin/uwsgi --ini /apps/reader/uwsgi.ini'
         Restart=always
         KillSignal=SIGQUIT
         Type=notify
@@ -110,6 +149,22 @@
   - name: reload nginx config
     command: nginx -s reload
 
-  # TODO: add update cron
+  - name: create log directory
+    file:
+      path: /var/log/reader
+      state: directory
+      owner: www-data
+
+  - name: add crontab entry
+    cron:
+      name: reader update
+      user: www-data
+      special_time: hourly
+      job: >
+        LD_LIBRARY_PATH=/apps/reader/sqlite
+        /apps/reader/bin/python -m reader
+        --db /data/www-data/reader.sqlite update -v
+        >>/var/log/reader/update.log 2>&1
+
   # TODO: backup database to s3
 
