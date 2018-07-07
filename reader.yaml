@@ -51,36 +51,24 @@
       - gcc
       - unzip
 
-  # From https://github.com/lemon24/reader/blob/master/build-sqlite.sh
+  - name: create sqlite temporary build directory
+    tempfile:
+      state: directory
+    register: sqlite_build_dir
+
+  # TODO: checkout the reader repo once (to install it) and that build-sqlite.sh
+  - name: get sqlite build script
+    get_url:
+      url: https://raw.githubusercontent.com/lemon24/reader/master/build-sqlite.sh
+      dest: "{{ sqlite_build_dir.path }}"
+
   - name: compile new enough sqlite
-    shell: |
+    command: "sh {{ sqlite_build_dir.path }}/build-sqlite.sh /apps/reader/"
 
-      cd /apps/reader/
-
-      if [ ! -e /apps/reader/sqlite/libsqlite3.so.0 ]; then
-          echo "compiling sqlite"
-          wget https://sqlite.org/2018/sqlite-amalgamation-3220000.zip
-          unzip sqlite-amalgamation-3220000.zip
-          rm sqlite-amalgamation-3220000.zip
-          mv sqlite-amalgamation-3220000 sqlite
-          cd sqlite
-          gcc -c -fPIC -O2 -I. \
-              -DSQLITE_THREADSAFE=0 \
-              -DSQLITE_ENABLE_FTS4 \
-              -DSQLITE_ENABLE_FTS5 \
-              -DSQLITE_ENABLE_JSON1 \
-              -DSQLITE_ENABLE_RTREE \
-              -DSQLITE_ENABLE_EXPLAIN_COMMENTS \
-              -DHAVE_USLEEP \
-              sqlite3.c
-          gcc -shared -o libsqlite3.so -fPIC sqlite3.o -ldl -lpthread
-          ln -s libsqlite3.so libsqlite3.so.0
-          cd ..
-      else
-          echo "using existing sqlite"
-      fi
-
-      exit 0
+  - name: remove sqlite temporary build directory
+    file:
+      path: "{{ sqlite_build_dir.path }}"
+      state: absent
 
   - name: create database directory
     file:
