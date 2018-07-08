@@ -26,12 +26,18 @@
       name: python3-venv
       state: latest
 
-  - name: create virtualenv with reader
+  - name: create virtualenv with the latest pip
     pip:
-      name: "git+https://github.com/lemon24/reader.git#egg=reader[enclosure-tags]"
+      name: pip
       virtualenv: /apps/reader
       virtualenv_command: /usr/bin/python3 -m venv
       virtualenv_site_packages: yes
+      state: latest
+
+  - name: install reader
+    pip:
+      name: "git+https://github.com/lemon24/reader.git#egg=reader[enclosure-tags]"
+      virtualenv: /apps/reader
       state: latest
 
   - name: install packages needed to build sqlite
