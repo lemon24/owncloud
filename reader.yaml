@@ -76,13 +76,6 @@
       state: directory
       owner: www-data
 
-  - name: create app file
-    copy:
-      dest: /apps/reader/app.py
-      content: |
-        from reader.app import create_app
-        app = create_app('/data/www-data/reader.sqlite')
-
   # TODO: should use emperor
   - name: create uwsgi config file
     copy:
@@ -91,10 +84,10 @@
         [uwsgi]
         socket = /apps/reader/uwsgi/sock
         manage-script-name = true
-        mount = /reader=app:app
+        mount = /reader=reader.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
-        env = PYTHONPATH=/apps/reader
+        env = READER_DB=/data/www-data/reader.sqlite
 
   # TODO: permissions
   - name: create uwsgi socket dir
