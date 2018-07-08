@@ -28,20 +28,11 @@
 
   - name: create virtualenv with reader
     pip:
-      name: git+https://github.com/lemon24/reader.git
+      name: "git+https://github.com/lemon24/reader.git#egg=reader[enclosure-tags]"
       virtualenv: /apps/reader
       virtualenv_command: /usr/bin/python3 -m venv
       virtualenv_site_packages: yes
       state: latest
-
-  - name: install optional reader dependencies
-    pip:
-      virtualenv: /apps/reader
-      name: "{{ item }}"
-      state: latest
-    loop:
-      - requests
-      - mutagen
 
   - name: install packages needed to build sqlite
     package:
