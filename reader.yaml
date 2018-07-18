@@ -142,7 +142,7 @@
       state: directory
       owner: www-data
 
-  - name: add crontab entry
+  - name: add crontab entry to update all feeds
     cron:
       name: reader update
       user: www-data
@@ -151,6 +151,16 @@
         LD_LIBRARY_PATH=/apps/reader/sqlite
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
+        >>/var/log/reader/update.log 2>&1
+
+  - name: add crontab entry to update new feeds
+    cron:
+      name: reader update new
+      user: www-data
+      job: >
+        LD_LIBRARY_PATH=/apps/reader/sqlite
+        /apps/reader/bin/python -m reader
+        --db /data/www-data/reader.sqlite update --new-only -v
         >>/var/log/reader/update.log 2>&1
 
   # TODO: backup database to s3
