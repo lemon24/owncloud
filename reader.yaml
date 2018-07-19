@@ -36,7 +36,7 @@
 
   - name: install reader
     pip:
-      name: "git+https://github.com/lemon24/reader.git#egg=reader[enclosure-tags]"
+      name: "git+https://github.com/lemon24/reader.git#egg=reader[requests,enclosure-tags]"
       virtualenv: /apps/reader
       state: latest
 
