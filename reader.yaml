@@ -83,7 +83,7 @@
         [uwsgi]
         socket = /apps/reader/uwsgi/sock
         manage-script-name = true
-        mount = /reader=reader.wsgi:app
+        mount = /reader=reader.app.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
         env = READER_DB=/data/www-data/reader.sqlite
