@@ -38,7 +38,7 @@
     pip:
       name:
         - pip
-        - "git+https://github.com/lemon24/reader.git#egg=reader[web-app,requests,enclosure-tags]"
+        - "git+https://github.com/lemon24/reader.git#egg=reader[web-app,enclosure-tags]"
       virtualenv: /apps/reader
       state: latest
 
