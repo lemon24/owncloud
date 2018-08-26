@@ -151,6 +151,7 @@
       special_time: hourly
       job: >
         LD_LIBRARY_PATH=/apps/reader/sqlite
+        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
         >>/var/log/reader/update.log 2>&1
@@ -161,6 +162,7 @@
       user: www-data
       job: >
         LD_LIBRARY_PATH=/apps/reader/sqlite
+        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
         >>/var/log/reader/update.log 2>&1
