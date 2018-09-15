@@ -58,7 +58,7 @@
   # TODO: checkout the reader repo once (to install it) and that build-sqlite.sh
   - name: get sqlite build script
     get_url:
-      url: https://raw.githubusercontent.com/lemon24/reader/master/build-sqlite.sh
+      url: https://raw.githubusercontent.com/lemon24/reader/master/scripts/build-sqlite.sh
       dest: "{{ sqlite_build_dir.path }}"
 
   - name: compile new enough sqlite
