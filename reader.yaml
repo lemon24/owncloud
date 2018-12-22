@@ -38,7 +38,7 @@
     pip:
       name:
         - pip
-        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags]"
+        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,plugins]"
       virtualenv: /apps/reader
       state: latest
 
@@ -151,7 +151,7 @@
       special_time: hourly
       job: >
         LD_LIBRARY_PATH=/apps/reader/sqlite
-        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read'
+        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         READER_PLUGIN_REGEX_MARK_AS_READ_CONFIG='/data/www-data/regex_mark_as_read_config.json'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
@@ -163,7 +163,7 @@
       user: www-data
       job: >
         LD_LIBRARY_PATH=/apps/reader/sqlite
-        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read'
+        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         READER_PLUGIN_REGEX_MARK_AS_READ_CONFIG='/data/www-data/regex_mark_as_read_config.json'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
