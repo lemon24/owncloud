@@ -93,6 +93,7 @@
       name: uwsgi_reader
       state: restarted
 
+  # TODO: find a way to make this independent of the python3 version
   - name: add nginx config
     copy:
       dest: /etc/nginx/secure/reader.conf
@@ -105,7 +106,7 @@
         location = /reader { rewrite ^ /reader/; }
 
         location /reader/static/ {
-            alias /apps/reader/lib/python3.5/site-packages/reader/app/static/;
+            alias /apps/reader/lib/python3.6/site-packages/reader/app/static/;
         }
 
   - name: reload nginx config
