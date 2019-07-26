@@ -1,3 +1,6 @@
+# should work with Ubuntu 18.04.2 LTS
+
+# TODO: run sudo apt-get update first
 
 - hosts: all
   gather_facts: no
