@@ -1,7 +1,10 @@
 
 - name: make filesystem
   filesystem:
-    dev: /dev/xvdb
+    # this name can change between instances, and even between attaches and
+    # reboots; maybe try
+    # https://github.com/transferwise/ansible-ebs-automatic-nvme-mapping
+    dev: /dev/nvme0n1
     type: ext4
 
 # TODO: permissions
@@ -15,7 +18,7 @@
     state: mounted
     fstype: ext4
     path: /data
-    src: /dev/xvdb
+    src: /dev/nvme0n1
     opts: defaults,nofail
     passno: 2
 
