@@ -10,7 +10,6 @@
       path: /apps
       state: directory
 
-
   - name: install uwsgi
     package:
       name: "{{ item }}"
@@ -41,33 +40,6 @@
         - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,plugins]"
       virtualenv: /apps/reader
       state: latest
-
-  - name: install packages needed to build sqlite
-    package:
-      name: "{{ item }}"
-      state: latest
-    loop:
-      - gcc
-      - unzip
-
-  - name: create sqlite temporary build directory
-    tempfile:
-      state: directory
-    register: sqlite_build_dir
-
-  # TODO: checkout the reader repo once (to install it) and that build-sqlite.sh
-  - name: get sqlite build script
-    get_url:
-      url: https://raw.githubusercontent.com/lemon24/reader/master/scripts/build-sqlite.sh
-      dest: "{{ sqlite_build_dir.path }}"
-
-  - name: compile new enough sqlite
-    command: "sh {{ sqlite_build_dir.path }}/build-sqlite.sh /apps/reader/"
-
-  - name: remove sqlite temporary build directory
-    file:
-      path: "{{ sqlite_build_dir.path }}"
-      state: absent
 
   - name: create database directory
     file:
@@ -106,7 +78,7 @@
 
         [Service]
         User=www-data
-        ExecStart=/bin/sh -c 'LD_LIBRARY_PATH=/apps/reader/sqlite:$LD_LIBRARY_PATH /usr/bin/uwsgi --ini /apps/reader/uwsgi.ini'
+        ExecStart=/bin/sh -c '/usr/bin/uwsgi --ini /apps/reader/uwsgi.ini'
         Restart=always
         KillSignal=SIGQUIT
         Type=notify
@@ -151,7 +123,6 @@
       user: www-data
       special_time: hourly
       job: >
-        LD_LIBRARY_PATH=/apps/reader/sqlite
         READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
@@ -162,7 +133,6 @@
       name: reader update new
       user: www-data
       job: >
-        LD_LIBRARY_PATH=/apps/reader/sqlite
         READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
