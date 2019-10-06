@@ -1,0 +1,104 @@
+# should work with Ubuntu 18.04.2 LTS
+
+# roughly based on http://www.albertauyeung.com/post/setup-jupyter-nginx-supervisor/
+
+
+# TODO: run sudo apt-get update first
+
+- hosts: all
+  gather_facts: no
+  become: true
+  become_method: sudo
+  tasks:
+
+  - name: create apps directory
+    file:
+      path: /apps
+      state: directory
+
+  # TODO: remove virtualenv
+
+  - name: install venv and other stuff
+    package:
+      name:
+        - python3-venv
+        - python3-pandas
+        - supervisor
+      state: latest
+
+  - name: create virtualenv with the latest pip
+    pip:
+      name: pip
+      virtualenv: /apps/jupyter
+      virtualenv_command: /usr/bin/python3 -m venv
+      virtualenv_site_packages: yes
+      state: latest
+
+  - name: install jupyter
+    pip:
+      name:
+        - pip
+        - jupyterlab
+        - bokeh
+      virtualenv: /apps/jupyter
+      state: latest
+
+  - name: create jupyter user
+    user:
+      name: jupyter
+      home: /data/jupyter
+      system: true
+      password: '*'
+
+  # should be safe enough since it's just me on this server;
+  # may be able to use a unix socket once this gets merged:
+  # https://github.com/jupyter/notebook/pull/4835/files
+  # TODO: use a unix socket
+  - name: add jupyter lab config
+    copy:
+      dest: /apps/jupyter/jupyter_notebook_config.py
+      content: |
+        c.NotebookApp.notebook_dir = '/data/jupyter'
+        c.NotebookApp.base_url = '/jupyter'
+        c.NotebookApp.port = 8888
+        c.NotebookApp.allow_remote_access = True
+        c.NotebookApp.token = ''
+
+  - name: add supervisor config
+    copy:
+      dest: /etc/supervisor/conf.d/jupyter.conf
+      content: |
+        [program:jupyter]
+        command = /apps/jupyter/bin/jupyter lab --no-browser --config=/apps/jupyter/jupyter_notebook_config.py
+        directory = /data/jupyter
+        user = jupyter
+        autostart = true
+        autorestart = true
+        stdout_logfile = /var/log/jupyter.log
+        redirect_stderr = true
+
+  - name: start jupyter using supervisor
+    supervisorctl:
+      name: jupyter
+      state: restarted
+
+  - name: add nginx config
+    copy:
+      dest: /etc/nginx/secure/jupyter.conf
+      content: |
+        location /jupyter {
+          proxy_pass http://localhost:8888;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header Host $http_host;
+          proxy_http_version 1.1;
+          proxy_redirect off;
+          proxy_buffering off;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 86400;
+        }
+
+  - name: reload nginx config
+    command: nginx -s reload
+
