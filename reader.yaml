@@ -95,6 +95,7 @@
     service:
       name: uwsgi_reader
       state: restarted
+      enabled: yes
 
   # TODO: find a way to make this independent of the python3 version
   - name: add nginx config
