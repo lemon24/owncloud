@@ -1,0 +1,182 @@
+# based on jupyter.yaml and reader.yaml
+# TODO: consolidate service-starting somehow
+
+
+# TODO: run sudo apt-get update first
+
+- hosts: all
+  gather_facts: no
+  become: true
+  become_method: sudo
+  tasks:
+
+  - name: create apps directory
+    file:
+      path: /apps
+      state: directory
+
+  - name: install uwsgi
+    package:
+      name: "{{ item }}"
+      state: latest
+    loop:
+      - uwsgi
+      - uwsgi-plugin-python3
+
+  # TODO: stop uwsgi smalltsdb service, remove from nginx, remove virtualenv
+
+  - name: install venv and other stuff
+    package:
+      name:
+        - python3-venv
+        - python3-numpy
+        - supervisor
+      state: latest
+
+  - name: create virtualenv with the latest pip
+    pip:
+      name: pip
+      virtualenv: /apps/smalltsdb
+      virtualenv_command: /usr/bin/python3 -m venv
+      virtualenv_site_packages: yes
+      state: latest
+
+  - name: install smalltsdb
+    pip:
+      name:
+        - pip
+        - "git+https://github.com/lemon24/smalltsdb.git#egg=smalltsdb[daemon,web-app]"
+      virtualenv: /apps/smalltsdb
+      state: latest
+
+  - name: create smalltsdb user
+    user:
+      name: smalltsdb
+      home: /data/smalltsdb
+      system: true
+      password: '*'
+      group: smalltsdb
+
+  - name: add www-data to the smalltsdb group, so nginx can connect to the socket
+    user:
+      name: www-data
+      groups: smalltsdb
+      append: yes
+
+  # TODO: should use emperor
+  # give g+w so www-data can connect; default was 755
+  - name: create uwsgi config file
+    copy:
+      dest: /apps/smalltsdb/uwsgi.ini
+      content: |
+        [uwsgi]
+        socket = /apps/smalltsdb/uwsgi/sock
+        chmod-socket = 775
+        manage-script-name = true
+        mount = /smalltsdb=smalltsdb.app.wsgi:app
+        plugin = python3
+        virtualenv = /apps/smalltsdb/
+        env = SMALLTSDB_DB=/data/smalltsdb/db.sqlite
+
+        ### disabled for now, as it seems to be using TCP (smalltsdb only supports UDP at the moment)
+        ## plugins = carbon
+        #carbon = 127.0.0.1:1111
+        ## enable-metrics = true
+        ## carbon-use-metrics = true
+        #carbon-id = smalltsdb.webapp
+        #carbon-hostname-dots = -
+
+  # TODO: permissions
+  - name: create uwsgi socket dir
+    file:
+      path: /apps/smalltsdb/uwsgi
+      state: directory
+      owner: smalltsdb
+
+  - name: create uwsgi smalltsdb service
+    copy:
+      dest: /etc/systemd/system/uwsgi_smalltsdb.service
+      content: |
+        [Unit]
+        Description=uwsgi smalltsdb
+        After=syslog.target
+
+        [Service]
+        User=smalltsdb
+        ExecStart=/bin/sh -c '/usr/bin/uwsgi --ini /apps/smalltsdb/uwsgi.ini'
+        Restart=always
+        KillSignal=SIGQUIT
+        Type=notify
+        StandardError=syslog
+        NotifyAccess=all
+
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: restart uwsgi smalltsdb service
+    service:
+      name: uwsgi_smalltsdb
+      state: restarted
+      enabled: yes
+
+  # TODO: find a way to make this independent of the python3 version
+  - name: add nginx config
+    copy:
+      dest: /etc/nginx/secure/smalltsdb.conf
+      content: |
+        location /smalltsdb/ {
+            include uwsgi_params;
+            uwsgi_pass unix:/apps/smalltsdb/uwsgi/sock;
+        }
+
+        location = /smalltsdb { rewrite ^ /smalltsdb/; }
+
+        location /smalltsdb/static/ {
+            alias /apps/smalltsdb/lib/python3.6/site-packages/smalltsdb/app/static/;
+        }
+
+  - name: reload nginx config
+    command: nginx -s reload
+
+  - name: add supervisor config
+    copy:
+      dest: /etc/supervisor/conf.d/smalltsdb-daemon.conf
+      content: |
+        [program:smalltsdb-daemon]
+        command = /apps/smalltsdb/bin/python -m smalltsdb.daemon
+        environment=SMALLTSDB_DB=/data/smalltsdb/db.sqlite
+        directory = /data/smalltsdb
+        user = smalltsdb
+        autostart = true
+        autorestart = true
+        stdout_logfile = /var/log/smalltsdb-daemon.log
+        redirect_stderr = true
+
+  - name: start smalltsdb-daemon using supervisor
+    supervisorctl:
+      name: smalltsdb-daemon
+      state: restarted
+
+  - name: install sysstat
+    package:
+      name:
+        - sysstat
+      state: latest
+
+  - name: create script
+    copy:
+      dest: /apps/smalltsdb/hosting.sh
+      mode: 0755
+      content: |
+        #!/bin/sh
+        echo host.cpu.utilization $( mpstat | grep -A5 '%idle' | tail -n1 | awk '{ print 100 - $12 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.mem.total $( free -m | grep 'Mem:' | head -n1 | awk '{ print $2 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.mem.free $( free -m | grep 'Mem:' | head -n1 | awk '{ print $4 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.mem.available $( free -m | grep 'Mem:' | head -n1 | awk '{ print $7 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+
+  - name: emit some hosting metrics
+    cron:
+      name: hosting metrics
+      user: smalltsdb
+      job: /apps/smalltsdb/hosting.sh
