@@ -176,6 +176,7 @@
         echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.free $( free -m | grep 'Mem:' | head -n1 | awk '{ print $4 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.available $( free -m | grep 'Mem:' | head -n1 | awk '{ print $7 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        wait
 
   - name: emit some hosting metrics
     cron:
