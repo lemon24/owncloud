@@ -163,13 +163,15 @@
         - sysstat
       state: latest
 
-  - name: create script
+  # TODO: move this to the smalltsdb repo; maybe use psutil
+  - name: create hosting metrics script
     copy:
       dest: /apps/smalltsdb/hosting.sh
       mode: 0755
       content: |
         #!/bin/sh
-        echo host.cpu.utilization $( mpstat | grep -A5 '%idle' | tail -n1 | awk '{ print 100 - $12 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.cpu.utilization $( sar 60 1 | grep -A1 '%idle' | tail -n1 | awk '{ print 100 - $8 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111 &
+        echo host.cpu.load $( cat /proc/loadavg | awk '{ print $1 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.total $( free -m | grep 'Mem:' | head -n1 | awk '{ print $2 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.free $( free -m | grep 'Mem:' | head -n1 | awk '{ print $4 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
