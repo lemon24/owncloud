@@ -170,7 +170,7 @@
       mode: 0755
       content: |
         #!/bin/sh
-        echo host.cpu.utilization $( sar 60 1 | grep -A1 '%idle' | tail -n1 | awk '{ print 100 - $8 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111 &
+        echo host.cpu.utilization $( sar 60 1 | grep -A1 '%idle' | tail -n1 | awk '{ print 100 - $8 }' ) $( date +%s ) > /tmp/cpu.utilization && cat /tmp/cpu.utilization | nc -u -w1 127.0.0.1 1111 &
         echo host.cpu.load $( cat /proc/loadavg | awk '{ print $1 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.total $( free -m | grep 'Mem:' | head -n1 | awk '{ print $2 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
