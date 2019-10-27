@@ -78,13 +78,12 @@
         virtualenv = /apps/smalltsdb/
         env = SMALLTSDB_DB=/data/smalltsdb/db.sqlite
 
-        ### disabled for now, as it seems to be using TCP (smalltsdb only supports UDP at the moment)
-        ## plugins = carbon
-        #carbon = 127.0.0.1:1111
-        ## enable-metrics = true
-        ## carbon-use-metrics = true
-        #carbon-id = smalltsdb.webapp
-        #carbon-hostname-dots = -
+        plugins = carbon
+        carbon = 127.0.0.1:1111
+        # enable-metrics = true
+        # carbon-use-metrics = true
+        carbon-id = smalltsdb
+        carbon-hostname-dots = -
 
   # TODO: permissions
   - name: create uwsgi socket dir
