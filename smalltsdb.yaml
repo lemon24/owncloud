@@ -137,24 +137,40 @@
   - name: reload nginx config
     command: nginx -s reload
 
+
+  - name: create log directory
+    file:
+      path: /var/log/smalltsdb
+      state: directory
+      owner: smalltsdb
+
   - name: add supervisor config
     copy:
       dest: /etc/supervisor/conf.d/smalltsdb-daemon.conf
       content: |
         [program:smalltsdb-daemon]
-        command = /apps/smalltsdb/bin/python -m smalltsdb.daemon
+        command = /apps/smalltsdb/bin/python -m smalltsdb.cli daemon
         environment=SMALLTSDB_DB=/data/smalltsdb/db.sqlite
         directory = /data/smalltsdb
         user = smalltsdb
         autostart = true
         autorestart = true
-        stdout_logfile = /var/log/smalltsdb-daemon.log
+        stdout_logfile = /var/log/smalltsdb/daemon.log
         redirect_stderr = true
 
   - name: start smalltsdb-daemon using supervisor
     supervisorctl:
       name: smalltsdb-daemon
       state: restarted
+
+  - name: sync every minute
+    cron:
+      name: smalltsdb sync
+      user: smalltsdb
+      job: >
+        SMALLTSDB_DB=/data/smalltsdb/db.sqlite
+        /apps/smalltsdb/bin/python -m smalltsdb.cli sync
+        >>/var/log/smalltsdb/sync.log 2>&1
 
   - name: install sysstat
     package:
