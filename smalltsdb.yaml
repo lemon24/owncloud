@@ -172,10 +172,11 @@
         /apps/smalltsdb/bin/python -m smalltsdb.cli sync
         >>/var/log/smalltsdb/sync.log 2>&1
 
-  - name: install sysstat
+  - name: install utilities
     package:
       name:
         - sysstat
+        - logtail
       state: latest
 
   # TODO: move this to the smalltsdb repo; maybe use psutil
@@ -191,6 +192,7 @@
         echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.free $( free -m | grep 'Mem:' | head -n1 | awk '{ print $4 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.available $( free -m | grep 'Mem:' | head -n1 | awk '{ print $7 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+        echo host.mem.oom-killed $( logtail -f /var/log/kern.log -o $HOME/host.mem.oom-logtail | grep -i 'killed process' -c ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         wait
 
   - name: emit some hosting metrics
