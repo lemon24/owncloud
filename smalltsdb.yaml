@@ -198,5 +198,5 @@
   - name: emit some hosting metrics
     cron:
       name: hosting metrics
-      user: smalltsdb
+      user: root
       job: /apps/smalltsdb/hosting.sh
