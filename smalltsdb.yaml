@@ -45,7 +45,7 @@
     pip:
       name:
         - pip
-        - "git+https://github.com/lemon24/smalltsdb.git#egg=smalltsdb[daemon,web-app]"
+        - "git+https://github.com/lemon24/smalltsdb.git#egg=smalltsdb[daemon,sync,web-app]"
       virtualenv: /apps/smalltsdb
       state: latest
 
