@@ -187,12 +187,25 @@
       content: |
         #!/bin/sh
         echo host.cpu.utilization $( sar 60 1 | grep -A1 '%idle' | tail -n1 | awk '{ print 100 - $8 }' ) $( date +%s ) > /tmp/cpu.utilization && cat /tmp/cpu.utilization | nc -u -w1 127.0.0.1 1111 &
+
+        iostat -dxy 60 1 \
+        | grep Device -A9999 | tail -n+2 | grep -v '^$' \
+        | grep -v ^loop \
+        | tr -s ' ' | cut -d' ' -f1-5,10,11 \
+        | xargs -n7 sh -c '
+          { echo r_s $1 w_s $2 rkb_s $3 wkb_s $4 r_await $5 w_await $6; } \
+          | xargs -n2 printf "host.disk.$0.%s %s $( date +%s )\n"
+        ' > /tmp/disk.metrics \
+        && \
+        cat /tmp/disk.metrics | nc -u -w1 127.0.0.1 1111 &
+
         echo host.cpu.load $( cat /proc/loadavg | awk '{ print $1 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.total $( free -m | grep 'Mem:' | head -n1 | awk '{ print $2 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.used $( free -m | grep 'Mem:' | head -n1 | awk '{ print $3 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.free $( free -m | grep 'Mem:' | head -n1 | awk '{ print $4 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.available $( free -m | grep 'Mem:' | head -n1 | awk '{ print $7 }' ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
         echo host.mem.oom-killed $( logtail -f /var/log/kern.log -o $HOME/host.mem.oom-logtail | grep -i 'killed process' -c ) $( date +%s ) | nc -u -w1 127.0.0.1 1111
+
         wait
 
   - name: emit some hosting metrics
