@@ -30,6 +30,7 @@
       name:
         - python3-venv
         - python3-numpy
+        - python3-psutil
         - supervisor
       state: latest
 
