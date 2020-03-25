@@ -40,7 +40,7 @@
     pip:
       name:
         - pip
-        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,plugins]"
+        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,plugins,search]"
       virtualenv: /apps/reader
       state: latest
 
@@ -50,6 +50,12 @@
       state: directory
       owner: www-data
 
+  - name: enable reader search
+    shell: LC_ALL=en_US.utf-8 /apps/reader/bin/python -m reader --db /data/www-data/reader.sqlite search enable
+
+  - name: update reader search once
+    shell: LC_ALL=en_US.utf-8 /apps/reader/bin/python -m reader --db /data/www-data/reader.sqlite search update
+      
   # TODO: should use emperor
   - name: create uwsgi config file
     copy:
@@ -135,6 +141,7 @@
       user: www-data
       special_time: "{{ item }}"
       job: >
+        LC_ALL=en_US.utf-8
         READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
@@ -143,15 +150,21 @@
       - hourly
       - reboot
 
-  - name: add crontab entry to update new feeds
+  - name: add crontab entry to update new feeds and the search index
     cron:
       name: reader update new
       user: www-data
       job: >
+        LC_ALL=en_US.utf-8
         READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
-        >>/var/log/reader/update.log 2>&1
+        >>/var/log/reader/update.log 2>&1 
+        &&
+        LC_ALL=en_US.utf-8
+        /apps/reader/bin/python -m reader
+        --db /data/www-data/reader.sqlite search update
+        >>/var/log/reader/update.log
 
   # TODO: backup database to s3
 
