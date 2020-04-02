@@ -116,8 +116,10 @@
   - name: restart uwsgi smalltsdb service
     service:
       name: uwsgi_smalltsdb
-      state: restarted
-      enabled: yes
+      #state: restarted
+      #enabled: yes
+      state: stopped
+      enabled: no
 
   # TODO: find a way to make this independent of the python3 version
   - name: add nginx config
@@ -162,7 +164,9 @@
   - name: start smalltsdb-daemon using supervisor
     supervisorctl:
       name: smalltsdb-daemon
-      state: restarted
+      #state: restarted
+      #state: stopped # must be stopped first, then absent
+      state: absent
 
   - name: sync every minute
     cron:
@@ -172,6 +176,9 @@
         SMALLTSDB_DB=/data/smalltsdb/db.sqlite
         /apps/smalltsdb/bin/python -m smalltsdb.cli sync
         >>/var/log/smalltsdb/sync.log 2>&1
+      #state: present
+      state: absent
+
 
   - name: install utilities
     package:
@@ -214,3 +221,5 @@
       name: hosting metrics
       user: root
       job: /apps/smalltsdb/hosting.sh
+      #state: present
+      state: absent
