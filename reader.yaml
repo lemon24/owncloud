@@ -40,7 +40,7 @@
     pip:
       name:
         - pip
-        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,plugins,search]"
+        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,web-app,enclosure-tags,preview-feed-list,plugins,search]"
       virtualenv: /apps/reader
       state: latest
 
@@ -69,6 +69,7 @@
         virtualenv = /apps/reader/
         env = READER_DB=/data/www-data/reader.sqlite
         env = READER_PLUGIN=reader.plugins.enclosure_dedupe:enclosure_dedupe
+        env = READER_APP_PLUGIN=reader.plugins.enclosure_tags:init reader.plugins.preview_feed_list:init
         
         plugins = carbon
         carbon = 127.0.0.1:1111
