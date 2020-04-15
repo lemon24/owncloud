@@ -124,7 +124,7 @@
         location = /reader { rewrite ^ /reader/; }
 
         location /reader/static/ {
-            alias /apps/reader/lib/python3.6/site-packages/reader/app/static/;
+            alias /apps/reader/lib/python3.6/site-packages/reader/_app/static/;
         }
 
   - name: reload nginx config
