@@ -64,12 +64,12 @@
         [uwsgi]
         socket = /apps/reader/uwsgi/sock
         manage-script-name = true
-        mount = /reader=reader.app.wsgi:app
+        mount = /reader=reader._app.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
         env = READER_DB=/data/www-data/reader.sqlite
-        env = READER_PLUGIN=reader.plugins.enclosure_dedupe:enclosure_dedupe
-        env = READER_APP_PLUGIN=reader.plugins.enclosure_tags:init reader.plugins.preview_feed_list:init
+        env = READER_PLUGIN=reader._plugins.enclosure_dedupe:enclosure_dedupe
+        env = READER_APP_PLUGIN=reader._plugins.enclosure_tags:init reader._plugins.preview_feed_list:init
         
         plugins = carbon
         carbon = 127.0.0.1:1111
@@ -143,7 +143,7 @@
       special_time: "{{ item }}"
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
+        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
         >>/var/log/reader/update.log 2>&1
@@ -157,7 +157,7 @@
       user: www-data
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader.plugins.tumblr_gdpr:tumblr_gdpr reader.plugins.regex_mark_as_read:regex_mark_as_read reader.plugins.feed_entry_dedupe:feed_entry_dedupe'
+        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
         >>/var/log/reader/update.log 2>&1 
