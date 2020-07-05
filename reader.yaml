@@ -164,7 +164,7 @@
         &&
         LC_ALL=en_US.utf-8
         /apps/reader/bin/python -m reader
-        --db /data/www-data/reader.sqlite search update
+        --db /data/www-data/reader.sqlite search update -v
         >>/var/log/reader/update.log
 
   # TODO: backup database to s3
