@@ -28,6 +28,11 @@
       name: python3-venv
       state: latest
 
+  - name: install psutil
+    package:
+      name: python3-psutil
+      state: latest
+
   - name: create virtualenv with the latest pip
     pip:
       name: pip
