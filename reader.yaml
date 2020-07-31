@@ -148,7 +148,7 @@
       special_time: "{{ item }}"
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe'
+        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe reader._plugins.cloudflare_ua_fix:init'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update -v
         >>/var/log/reader/update.log 2>&1
@@ -162,7 +162,7 @@
       user: www-data
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe'
+        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe reader._plugins.cloudflare_ua_fix:init'
         /apps/reader/bin/python -m reader
         --db /data/www-data/reader.sqlite update --new-only -v
         >>/var/log/reader/update.log 2>&1 
