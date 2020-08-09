@@ -73,7 +73,7 @@
         plugin = python3
         virtualenv = /apps/reader/
         env = READER_DB=/data/www-data/reader.sqlite
-        env = READER_PLUGIN=reader._plugins.enclosure_dedupe:enclosure_dedupe
+        env = READER_PLUGIN=reader._plugins.enclosure_dedupe:enclosure_dedupe reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.cloudflare_ua_fix:init
         env = READER_APP_PLUGIN=reader._plugins.enclosure_tags:init reader._plugins.preview_feed_list:init
         
         plugins = carbon
