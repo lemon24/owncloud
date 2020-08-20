@@ -49,6 +49,12 @@
       virtualenv: /apps/reader
       state: latest
 
+  - name: create reader config file
+    copy:
+      # TODO: may fail if cwd is not in the repo
+      src: reader-data/reader-config.yaml
+      dest: /apps/reader/reader.yaml
+
   - name: create database directory
     file:
       path: /data/www-data
@@ -56,11 +62,17 @@
       owner: www-data
 
   - name: enable reader search
-    shell: LC_ALL=en_US.utf-8 /apps/reader/bin/python -m reader --db /data/www-data/reader.sqlite search enable
+    shell: >
+      LC_ALL=en_US.utf-8
+      READER_CONFIG=/apps/reader/reader.yaml
+      /apps/reader/bin/python -m reader search enable
 
   - name: update reader search once
-    shell: LC_ALL=en_US.utf-8 /apps/reader/bin/python -m reader --db /data/www-data/reader.sqlite search update
-      
+    shell: >
+      LC_ALL=en_US.utf-8
+      READER_CONFIG=/apps/reader/reader.yaml
+      /apps/reader/bin/python -m reader search update
+
   # TODO: should use emperor
   - name: create uwsgi config file
     copy:
@@ -72,10 +84,8 @@
         mount = /reader=reader._app.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
-        env = READER_DB=/data/www-data/reader.sqlite
-        env = READER_PLUGIN=reader._plugins.enclosure_dedupe:enclosure_dedupe reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.cloudflare_ua_fix:init
-        env = READER_APP_PLUGIN=reader._plugins.enclosure_tags:init reader._plugins.preview_feed_list:init
-        
+        env = READER_CONFIG=/apps/reader/reader.yaml
+
         plugins = carbon
         carbon = 127.0.0.1:1111
         #enable-metrics = true
@@ -141,6 +151,8 @@
       state: directory
       owner: www-data
 
+  # TODO: use the cron env parameter
+
   - name: add crontab entry to update all feeds
     cron:
       name: "reader update {{ item }}"
@@ -148,9 +160,8 @@
       special_time: "{{ item }}"
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe reader._plugins.cloudflare_ua_fix:init'
-        /apps/reader/bin/python -m reader
-        --db /data/www-data/reader.sqlite update -v
+        READER_CONFIG=/apps/reader/reader.yaml
+        /apps/reader/bin/python -m reader update
         >>/var/log/reader/update.log 2>&1
     loop:
       - hourly
@@ -162,14 +173,13 @@
       user: www-data
       job: >
         LC_ALL=en_US.utf-8
-        READER_PLUGIN='reader._plugins.tumblr_gdpr:tumblr_gdpr reader._plugins.regex_mark_as_read:regex_mark_as_read reader._plugins.feed_entry_dedupe:feed_entry_dedupe reader._plugins.cloudflare_ua_fix:init'
-        /apps/reader/bin/python -m reader
-        --db /data/www-data/reader.sqlite update --new-only -v
-        >>/var/log/reader/update.log 2>&1 
+        READER_CONFIG=/apps/reader/reader.yaml
+        /apps/reader/bin/python -m reader update --new-only
+        >>/var/log/reader/update.log 2>&1
         &&
         LC_ALL=en_US.utf-8
-        /apps/reader/bin/python -m reader
-        --db /data/www-data/reader.sqlite search update -v
+        READER_CONFIG=/apps/reader/reader.yaml
+        /apps/reader/bin/python -m reader search update
         >>/var/log/reader/update.log 2>&1
 
   # TODO: backup database to s3

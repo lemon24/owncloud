@@ -1,0 +1,31 @@
+
+reader:
+  url: /data/www-data/reader.sqlite
+  feed_root: null
+
+  plugins:
+    reader._plugins.tumblr_gdpr:tumblr_gdpr:
+    reader._plugins.cloudflare_ua_fix:init:
+
+cli:
+  reader:
+    plugins:
+      reader._plugins.regex_mark_as_read:regex_mark_as_read:
+      reader._plugins.feed_entry_dedupe:feed_entry_dedupe:
+
+  defaults:
+    update:
+      verbose: 1
+    search:
+      update:
+        verbose: 1
+
+app:
+  reader:
+    plugins:
+      reader._plugins.enclosure_dedupe:enclosure_dedupe:
+
+  plugins:
+    reader._plugins.enclosure_tags:init:
+    reader._plugins.preview_feed_list:init:
+
