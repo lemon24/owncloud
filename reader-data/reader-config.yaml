@@ -5,7 +5,7 @@ reader:
 
   plugins:
     reader._plugins.tumblr_gdpr:tumblr_gdpr:
-    reader._plugins.cloudflare_ua_fix:init:
+    reader._plugins.ua_fallback:init:
 
 cli:
   reader:
