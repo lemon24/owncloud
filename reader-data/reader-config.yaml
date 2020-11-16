@@ -6,6 +6,7 @@ reader:
   plugins:
     reader._plugins.tumblr_gdpr:tumblr_gdpr:
     reader._plugins.ua_fallback:init:
+    reader._plugins.sqlite_releases:init:
 
 cli:
   reader:
