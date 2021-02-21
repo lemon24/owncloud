@@ -16,7 +16,7 @@ cli:
 
   defaults:
     update:
-      verbose: 1
+      verbose: 3
     search:
       update:
         verbose: 1
