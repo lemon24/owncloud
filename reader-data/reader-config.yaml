@@ -5,14 +5,14 @@ reader:
 
   plugins:
     reader._plugins.tumblr_gdpr:tumblr_gdpr:
-    reader._plugins.ua_fallback:init:
+    reader.ua_fallback:
     reader._plugins.sqlite_releases:init:
 
 cli:
   reader:
     plugins:
       reader._plugins.regex_mark_as_read:regex_mark_as_read:
-      reader._plugins.feed_entry_dedupe:feed_entry_dedupe:
+      reader.entry_dedupe:
 
   defaults:
     update:
@@ -24,7 +24,7 @@ cli:
 app:
   reader:
     plugins:
-      reader._plugins.enclosure_dedupe:enclosure_dedupe:
+      reader.enclosure_dedupe:
 
   plugins:
     reader._plugins.enclosure_tags:init:
