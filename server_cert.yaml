@@ -1,3 +1,4 @@
+# FIXME: openssl_privatekey was renamed / moved, find replacement
 
 - name: create dir
   local_action:

@@ -39,6 +39,8 @@
   template:
     src: secure.conf
     dest: /etc/nginx/sites-available/secure.conf
+  tags:
+    - config-only
 
 - name: enable server config
   file:
@@ -48,4 +50,6 @@
    
 - name: reload server config
   command: nginx -s reload
+  tags:
+    - config-only
  
