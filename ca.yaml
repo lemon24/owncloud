@@ -1,5 +1,7 @@
+# TODO: use Ed25519; https://blog.pinterjann.is/ed25519-certificates.html
 
 - hosts: localhost
+  gather_facts: no
   vars:
     outdir: out/
     passphrase: passphrase
@@ -15,7 +17,7 @@
       passphrase: "{{ passphrase }}"
       path: "{{ outdir }}/ca/ca.key"
       state: present
-      cipher: aes256
+      cipher: auto
 
   # Sadly, I can't persuade openssl_certificate to generate a CA cert (commented below).
   - name: check certificate exists

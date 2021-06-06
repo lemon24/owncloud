@@ -1,4 +1,3 @@
-# FIXME: openssl_privatekey was renamed / moved, find replacement
 
 - name: create dir
   local_action:
@@ -29,7 +28,7 @@
 
 - name: create certificate
   local_action:
-    module: openssl_certificate_latest
+    module: openssl_certificate
     ownca_path: "{{ outdir }}/ca/ca.crt"
     ownca_privatekey_path: "{{ outdir }}/ca/ca.key"
     ownca_privatekey_passphrase: "{{ passphrase }}"
