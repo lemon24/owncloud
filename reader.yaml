@@ -1,4 +1,4 @@
-# should work with Ubuntu 18.04.2 LTS
+# should work with Ubuntu 20.04 LTS
 
 # TODO: run sudo apt-get update first
 
@@ -13,39 +13,41 @@
       path: /apps
       state: directory
 
-  - name: install uwsgi
+  - name: install packages
     package:
       name: "{{ item }}"
       state: latest
     loop:
       - uwsgi
       - uwsgi-plugin-python3
+      - python3-venv
+      - python3-psutil
 
   # TODO: stop uwsgi reader service, remove from nginx, remove virtualenv
 
-  - name: install venv
-    package:
-      name: python3-venv
-      state: latest
-
-  - name: install psutil
-    package:
-      name: python3-psutil
-      state: latest
-
-  - name: create virtualenv with the latest pip
+  - name: create virtualenv with the latest pip and setuptools
     pip:
-      name: pip
+      name: 
+        - pip
       virtualenv: /apps/reader
       virtualenv_command: /usr/bin/python3 -m venv
-      virtualenv_site_packages: yes
       state: latest
-
+    
+  - name: get the virtualenv python version
+    command:
+      argv:
+      - /apps/reader/bin/python
+      - -c 
+      - from sys import version_info as v; print(f"{v.major}.{v.minor}")    
+    register: python_version
+    
+  - name: save the python version
+    set_fact:
+      python_version: "{{ python_version.stdout }}"
+      
   - name: install reader
     pip:
-      name:
-        - pip
-        - "git+https://github.com/lemon24/reader.git#egg=reader[cli,app,enclosure-tags,preview-feed-list,search]"
+      name: "git+https://github.com/lemon24/reader.git#egg=reader[search,cli,app,unstable-plugins]"
       virtualenv: /apps/reader
       state: forcereinstall
 
@@ -126,21 +128,11 @@
       state: restarted
       enabled: yes
 
-  # TODO: find a way to make this independent of the python3 version
   - name: add nginx config
-    copy:
+    template:
+      # TODO: may fail if cwd is not in the repo
+      src: reader-data/nginx.conf
       dest: /etc/nginx/secure/reader.conf
-      content: |
-        location /reader/ {
-            include uwsgi_params;
-            uwsgi_pass unix:/apps/reader/uwsgi/sock;
-        }
-
-        location = /reader { rewrite ^ /reader/; }
-
-        location /reader/static/ {
-            alias /apps/reader/lib/python3.6/site-packages/reader/_app/static/;
-        }
 
   - name: reload nginx config
     command: nginx -s reload

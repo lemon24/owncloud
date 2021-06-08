@@ -1,6 +1,6 @@
 Tools to set up an nginx server with mutual TLS authentication.
 
-Should work with Ubuntu 16.04 (managed node) and Ansible 2.9+ (control machine).
+Should work with Ubuntu 20.04 (managed node) and Ansible 2.9+ (control machine).
 
 Mostly inspired by
 

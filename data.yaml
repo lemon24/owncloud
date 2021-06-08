@@ -4,7 +4,7 @@
     # this name can change between instances, and even between attaches and
     # reboots; maybe try
     # https://github.com/transferwise/ansible-ebs-automatic-nvme-mapping
-    dev: /dev/nvme0n1p1
+    dev: /dev/nvme1n1
     type: ext4
 
 # TODO: permissions
@@ -15,10 +15,15 @@
 
 - name: mount filesystem
   mount:
+    state: unmounted
+    path: /data
+
+- name: mount filesystem
+  mount:
     state: mounted
     fstype: ext4
     path: /data
-    src: /dev/nvme0n1p1
+    src: /dev/nvme1n1
     opts: defaults,nofail
     passno: 2
 
