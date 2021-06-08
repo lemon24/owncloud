@@ -1,16 +1,20 @@
 Tools to set up an nginx server with mutual TLS authentication.
 
-Should work with Ubuntu 16.04 (managed node) and Ansible 2.4+ (control machine).
+Should work with Ubuntu 16.04 (managed node) and Ansible 2.9+ (control machine).
 
-Mostly inspired by https://blog.codeship.com/how-to-set-up-mutual-tls-authentication/
+Mostly inspired by
+
+* https://blog.codeship.com/how-to-set-up-mutual-tls-authentication/ (original)
+* https://www.phildev.net/ssl/creating_ca.html
+* https://gquintana.github.io/2020/11/28/Build-your-own-CA-with-Ansible.html
+* https://blog.pinterjann.is/ed25519-certificates.html
+* https://www.golinuxcloud.com/openssl-generate-ecc-certificate/
+* https://security.stackexchange.com/questions/236931/whats-the-deal-with-x25519-support-in-chrome-firefox
+ 
 
 ## Usage
 
 ### Initial setup
-
-Get the latest openssl_certificate module:
-
-    ./get_latest_openssl_certificate.sh
 
 Create certificate authority certificate:
 

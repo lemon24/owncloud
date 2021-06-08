@@ -10,6 +10,8 @@
     module: openssl_privatekey
     path: "{{ outdir }}/server/{{ domain }}.key"
     state: present
+    type: ECC
+    curve: secp384r1
 
 - name: check certificate exists
   local_action:

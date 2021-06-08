@@ -1,4 +1,3 @@
-# TODO: use Ed25519; https://blog.pinterjann.is/ed25519-certificates.html
 
 - hosts: localhost
   gather_facts: no
@@ -18,43 +17,36 @@
       path: "{{ outdir }}/ca/ca.key"
       state: present
       cipher: auto
+      type: ECC
+      curve: secp384r1
 
-  # Sadly, I can't persuade openssl_certificate to generate a CA cert (commented below).
   - name: check certificate exists
     local_action:
       module: stat
       path: "{{ outdir }}/ca/ca.crt"
     register: cert_stat
-  - name: create certificate
-    local_action:
-      module: expect
-      command: "openssl req -new -x509 -sha256 -days 3650 -key {{ outdir }}/ca/ca.key -out {{ outdir }}/ca/ca.crt"
-      responses:
-        "Enter pass phrase for": "{{ passphrase }}"
-        "Country Name": "."
-        "State or Province Name": "."
-        "Locality Name": "."
-        "Organization Name": "."
-        "Organizational Unit Name": "."
-        "Common Name": moremagic
-        "Email Address": "."
-    when: not cert_stat.stat.exists
 
-  #- name: create CSR
-    #openssl_csr:
-      #privatekey_path: "{{ outdir }}/ca/ca.key"
-      #privatekey_passphrase: "{{ passphrase }}"
-      #path: "{{ outdir }}/ca/ca.csr"
-      #state: present
-      #common_name: moremagic
-  #- name: create certificate
-    #openssl_certificate:
-      #privatekey_path: "{{ outdir }}/ca/ca.key"
-      #privatekey_passphrase: "{{ passphrase }}"
-      #csr_path: "{{ outdir }}/ca/ca.csr"
-      #path: "{{ outdir }}/ca/ca.crt"
-      #state: present
-      #provider: selfsigned
+  - name: create CSR
+    openssl_csr:
+      privatekey_path: "{{ outdir }}/ca/ca.key"
+      privatekey_passphrase: "{{ passphrase }}"
+      path: "{{ outdir }}/ca/ca.csr"
+      state: present
+      common_name: moremagic
+      basic_constraints_critical: yes
+      basic_constraints:
+        - CA:TRUE
+    when: not cert_stat.stat.exists
+      
+  - name: create certificate
+    openssl_certificate:
+      privatekey_path: "{{ outdir }}/ca/ca.key"
+      privatekey_passphrase: "{{ passphrase }}"
+      csr_path: "{{ outdir }}/ca/ca.csr"
+      path: "{{ outdir }}/ca/ca.crt"
+      state: present
+      provider: selfsigned
+    when: not cert_stat.stat.exists
 
   - name: delete unneeded files
     local_action:

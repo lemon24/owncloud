@@ -12,6 +12,8 @@
     path: "{{ outdir }}/client/{{ name }}.key"
     state: present
     cipher: auto
+    type: ECC
+    curve: secp384r1
 
 - name: create CSR
   local_action:
@@ -33,15 +35,15 @@
     state: present
     provider: ownca
 
-# could have used this instead:
-# https://gist.github.com/gdelpierre/eecb5d990e5f79d84760da784841f085
 - name: create pkcs12
   local_action:
-    module: expect
-    command: "openssl pkcs12 -export -clcerts -in {{ outdir }}/client/{{ name }}.crt -inkey {{ outdir }}/client/{{ name }}.key -out {{ outdir }}/client/{{ name }}.p12"
-    responses:
-      "Enter pass phrase for": "{{ passphrase }}"
-      "Enter Export Password": ""
+    module: openssl_pkcs12
+    certificate_path: "{{ outdir }}/client/{{ name }}.crt"
+    privatekey_path: "{{ outdir }}/client/{{ name }}.key"
+    privatekey_passphrase: "{{ passphrase }}"
+    path: "{{ outdir }}/client/{{ name }}.p12"
+    friendly_name: "{{ name }}'s cert and key"
+    passphrase: ""
 
 - name: delete unneeded files
   local_action:
