@@ -9,14 +9,12 @@ reader:
 
   plugins:
     reader._plugins.tumblr_gdpr:tumblr_gdpr:
-    reader.ua_fallback:
     reader._plugins.sqlite_releases:init:
+    reader.ua_fallback:
+    reader.mark_as_read:
+    reader.entry_dedupe:
 
 cli:
-  reader:
-    plugins:
-      reader.mark_as_read:
-      reader.entry_dedupe:
 
   defaults:
     update:
