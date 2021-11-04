@@ -153,7 +153,9 @@
       job: >
         LC_ALL=en_US.utf-8
         READER_CONFIG=/apps/reader/reader.yaml
-        /apps/reader/bin/python -m reader update --workers 4
+        /apps/reader/bin/python -m reader
+        --cli-plugin reader._plugins.cli_status.init_cli
+        update --workers 4
         >>/var/log/reader/update.log 2>&1
     loop:
       - hourly
