@@ -153,6 +153,7 @@
       job: >
         LC_ALL=en_US.utf-8
         READER_CONFIG=/apps/reader/reader.yaml
+        READER_CLI_PLUGIN='reader._plugins.cli_status.init_cli'
         /apps/reader/bin/python -m reader update --workers 4
         >>/var/log/reader/update.log 2>&1
     loop:
