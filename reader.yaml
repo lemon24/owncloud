@@ -22,29 +22,37 @@
       - uwsgi-plugin-python3
       - python3-venv
       - python3-psutil
+      - earlyoom
+
+  # TODO: this should be configured globally
+  - name: configure earlyoom
+    lineinfile:
+      path: /etc/default/earlyoom
+      regexp: '^EARLYOOM_ARGS='
+      line: EARLYOOM_ARGS="-r 60 --prefer 'uwsgi'"
 
   # TODO: stop uwsgi reader service, remove from nginx, remove virtualenv
 
   - name: create virtualenv with the latest pip and setuptools
     pip:
-      name: 
+      name:
         - pip
       virtualenv: /apps/reader
       virtualenv_command: /usr/bin/python3 -m venv
       state: latest
-    
+
   - name: get the virtualenv python version
     command:
       argv:
       - /apps/reader/bin/python
-      - -c 
-      - from sys import version_info as v; print(f"{v.major}.{v.minor}")    
+      - -c
+      - from sys import version_info as v; print(f"{v.major}.{v.minor}")
     register: python_version
-    
+
   - name: save the python version
     set_fact:
       python_version: "{{ python_version.stdout }}"
-      
+
   - name: install reader
     pip:
       name: "git+https://github.com/lemon24/reader.git#egg=reader[search,cli,app,unstable-plugins]"
@@ -87,6 +95,8 @@
         plugin = python3
         virtualenv = /apps/reader/
         env = READER_CONFIG=/apps/reader/reader.yaml
+
+        max-requests = 100
 
         plugins = carbon
         carbon = 127.0.0.1:1111
