@@ -55,7 +55,7 @@
 
   - name: install reader
     pip:
-      name: "git+https://github.com/lemon24/reader.git#egg=reader[search,cli,app,unstable-plugins]"
+      name: "git+https://github.com/lemon24/reader.git#egg=reader[readtime,cli,app,unstable-plugins]"
       virtualenv: /apps/reader
       state: forcereinstall
 
