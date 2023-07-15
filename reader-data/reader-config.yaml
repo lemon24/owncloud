@@ -8,9 +8,7 @@ reader:
     separator: '.'
 
   plugins:
-    reader._plugins.tumblr_gdpr:tumblr_gdpr:
     reader._plugins.sqlite_releases:init:
-    reader._plugins.twitter:init_reader:
     reader.ua_fallback:
     reader.mark_as_read:
     reader.entry_dedupe:
