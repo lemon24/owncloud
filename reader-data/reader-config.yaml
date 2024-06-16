@@ -27,8 +27,11 @@ app:
   reader:
     plugins:
       reader.enclosure_dedupe:
+      reader._plugins.timer:init_reader:
 
   plugins:
     reader._plugins.enclosure_tags:init:
     reader._plugins.preview_feed_list:init:
+    reader._plugins.share:init:
+
 
