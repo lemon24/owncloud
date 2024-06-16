@@ -155,30 +155,16 @@
 
   # TODO: use the cron env parameter
 
-  - name: add crontab entry to update all feeds
+  - name: add crontab entry to update scheduled feeds and the search index
     cron:
-      name: "reader update {{ item }}"
+      name: reader update scheduled
       user: www-data
-      special_time: "{{ item }}"
       job: >
         LC_ALL=en_US.utf-8
         READER_CONFIG=/apps/reader/reader.yaml
         /apps/reader/bin/python -m reader
         --cli-plugin reader._plugins.cli_status.init_cli
-        update --workers 4
-        >>/var/log/reader/update.log 2>&1
-    loop:
-      - hourly
-      - reboot
-
-  - name: add crontab entry to update new feeds and the search index
-    cron:
-      name: reader update new
-      user: www-data
-      job: >
-        LC_ALL=en_US.utf-8
-        READER_CONFIG=/apps/reader/reader.yaml
-        /apps/reader/bin/python -m reader update --new-only
+        update --workers 4 --scheduled
         >>/var/log/reader/update.log 2>&1
         &&
         LC_ALL=en_US.utf-8
