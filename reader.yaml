@@ -29,7 +29,7 @@
     lineinfile:
       path: /etc/default/earlyoom
       regexp: '^EARLYOOM_ARGS='
-      line: EARLYOOM_ARGS="-r 60 --prefer 'uwsgi'"
+      line: EARLYOOM_ARGS="--prefer 'uwsgi'"
 
   # TODO: stop uwsgi reader service, remove from nginx, remove virtualenv
 
@@ -98,13 +98,6 @@
 
         max-requests = 100
 
-        plugins = carbon
-        carbon = 127.0.0.1:1111
-        #enable-metrics = true
-        #carbon-use-metrics = true
-        carbon-id = reader
-        carbon-hostname-dots = -
-
   # TODO: permissions
   - name: create uwsgi socket dir
     file:
@@ -164,7 +157,7 @@
         READER_CONFIG=/apps/reader/reader.yaml
         /apps/reader/bin/python -m reader
         --cli-plugin reader._plugins.cli_status.init_cli
-        update --workers 4 --scheduled
+        update --workers 2 --scheduled
         >>/var/log/reader/update.log 2>&1
         &&
         LC_ALL=en_US.utf-8
