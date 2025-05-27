@@ -6,6 +6,9 @@
     # https://github.com/transferwise/ansible-ebs-automatic-nvme-mapping
     dev: /dev/nvme1n1
     type: ext4
+  when: 
+  - data_volume is defined
+  - data_volume is truthy(convert_bool=True)
 
 # TODO: permissions
 - name: create mountpoint
@@ -17,6 +20,9 @@
   mount:
     state: unmounted
     path: /data
+  when: 
+  - data_volume is defined
+  - data_volume is truthy(convert_bool=True)
 
 - name: mount filesystem
   mount:
@@ -26,4 +32,7 @@
     src: /dev/nvme1n1
     opts: defaults,nofail
     passno: 2
+  when: 
+  - data_volume is defined
+  - data_volume is truthy(convert_bool=True)
 

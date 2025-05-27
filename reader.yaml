@@ -2,7 +2,7 @@
 
 # TODO: run sudo apt-get update first
 
-- hosts: all
+- hosts: "{{ hosts | default('hosts')}}"
   gather_facts: no
   become: true
   become_method: sudo

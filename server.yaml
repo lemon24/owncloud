@@ -1,5 +1,5 @@
 
-- hosts: all
+- hosts: "{{ hosts | default('hosts')}}"
   gather_facts: no
   vars:
     outdir: out/
