@@ -95,6 +95,7 @@
         plugin = python3
         virtualenv = /apps/reader/
         env = READER_CONFIG=/apps/reader/reader.yaml
+        logto = /var/log/reader/uwsgi.log
 
         max-requests = 100
 
