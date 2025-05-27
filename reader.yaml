@@ -13,6 +13,12 @@
       path: /apps
       state: directory
 
+  - name: create log directory
+    file:
+      path: /var/log/reader
+      state: directory
+      owner: www-data
+
   - name: install packages
     package:
       name: "{{ item }}"
@@ -76,12 +82,16 @@
       LC_ALL=en_US.utf-8
       READER_CONFIG=/apps/reader/reader.yaml
       /apps/reader/bin/python -m reader search enable
+    become: true
+    become_user: www-data
 
   - name: update reader search once
     shell: >
       LC_ALL=en_US.utf-8
       READER_CONFIG=/apps/reader/reader.yaml
       /apps/reader/bin/python -m reader search update
+    become: true
+    become_user: www-data
 
   # TODO: should use emperor
   - name: create uwsgi config file
@@ -140,12 +150,6 @@
 
   - name: reload nginx config
     command: nginx -s reload
-
-  - name: create log directory
-    file:
-      path: /var/log/reader
-      state: directory
-      owner: www-data
 
   # TODO: use the cron env parameter
 
