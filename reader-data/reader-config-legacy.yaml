@@ -28,3 +28,10 @@ app:
     plugins:
       reader.enclosure_dedupe:
       reader._plugins.timer:init_reader:
+
+  plugins:
+    reader._plugins.legacy.enclosure_tags:init:
+    reader._plugins.legacy.preview_feed_list:init:
+    reader._plugins.legacy.share:init:
+
+

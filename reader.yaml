@@ -71,6 +71,12 @@
       src: reader-data/reader-config.yaml
       dest: /apps/reader/reader.yaml
 
+  - name: create reader legacy config file
+    copy:
+      # TODO: may fail if cwd is not in the repo
+      src: reader-data/reader-config-legacy.yaml
+      dest: /apps/reader/reader-legacy.yaml
+      
   - name: create database directory
     file:
       path: /data/www-data
@@ -108,6 +114,21 @@
         logto = /var/log/reader/uwsgi.log
 
         max-requests = 100
+        
+  - name: create uwsgi legacy config file
+    copy:
+      dest: /apps/reader/uwsgi-legacy.ini
+      content: |
+        [uwsgi]
+        socket = /apps/reader/uwsgi/sock-legacy
+        manage-script-name = true
+        mount = /reader/legacy=reader._app.legacy.wsgi:app
+        plugin = python3
+        virtualenv = /apps/reader/
+        env = READER_CONFIG=/apps/reader/reader-legacy.yaml
+        logto = /var/log/reader/uwsgi-legacy.log
+
+        max-requests = 100
 
   # TODO: permissions
   - name: create uwsgi socket dir
@@ -135,10 +156,36 @@
 
         [Install]
         WantedBy=multi-user.target
+        
+  - name: create uwsgi legacy reader service
+    copy:
+      dest: /etc/systemd/system/uwsgi_reader_legacy.service
+      content: |
+        [Unit]
+        Description=uwsgi legacy reader
+        After=syslog.target
+
+        [Service]
+        User=www-data
+        ExecStart=/bin/sh -c '/usr/bin/uwsgi --ini /apps/reader/uwsgi-legacy.ini'
+        Restart=always
+        KillSignal=SIGQUIT
+        Type=notify
+        StandardError=syslog
+        NotifyAccess=all
+
+        [Install]
+        WantedBy=multi-user.target
 
   - name: restart uwsgi reader service
     service:
       name: uwsgi_reader
+      state: restarted
+      enabled: yes
+
+  - name: restart uwsgi legacy reader service
+    service:
+      name: uwsgi_reader_legacy
       state: restarted
       enabled: yes
 
