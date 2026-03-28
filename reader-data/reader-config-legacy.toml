@@ -1,0 +1,25 @@
+[reader]
+url = "/data/www-data/reader.sqlite"
+reserved_name_scheme = { reader_prefix = '.', plugin_prefix = '.', separator = '.' }
+plugins = [
+    "reader._plugins.sqlite_releases",
+    ".ua_fallback",
+    ".mark_as_read",
+    ".entry_dedupe",
+    ".readtime",
+    ".enclosure_dedupe",
+    "reader._plugins.timer",
+]
+
+[reader.update]
+verbose = 3
+
+[reader.search.update]
+verbose = 1
+
+[reader.web]
+plugins = [
+    "reader._plugins.legacy.enclosure_tags",
+    "reader._plugins.legacy.preview_feed_list",
+    "reader._plugins.legacy.share",
+]

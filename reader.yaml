@@ -68,14 +68,14 @@
   - name: create reader config file
     copy:
       # TODO: may fail if cwd is not in the repo
-      src: reader-data/reader-config.yaml
-      dest: /apps/reader/reader.yaml
+      src: reader-data/reader-config.toml
+      dest: /apps/reader/reader.toml
 
   - name: create reader legacy config file
     copy:
       # TODO: may fail if cwd is not in the repo
-      src: reader-data/reader-config-legacy.yaml
-      dest: /apps/reader/reader-legacy.yaml
+      src: reader-data/reader-config-legacy.toml
+      dest: /apps/reader/reader-legacy.toml
       
   - name: create database directory
     file:
@@ -86,7 +86,7 @@
   - name: enable reader search
     shell: >
       LC_ALL=en_US.utf-8
-      READER_CONFIG=/apps/reader/reader.yaml
+      READER_CONFIG=/apps/reader/reader.toml
       /apps/reader/bin/python -m reader search enable
     become: true
     become_user: www-data
@@ -94,7 +94,7 @@
   - name: update reader search once
     shell: >
       LC_ALL=en_US.utf-8
-      READER_CONFIG=/apps/reader/reader.yaml
+      READER_CONFIG=/apps/reader/reader.toml
       /apps/reader/bin/python -m reader search update
     become: true
     become_user: www-data
@@ -110,7 +110,7 @@
         mount = /reader=reader._app.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
-        env = READER_CONFIG=/apps/reader/reader.yaml
+        env = READER_CONFIG=/apps/reader/reader.toml
         logto = /var/log/reader/uwsgi.log
 
         max-requests = 100
@@ -125,7 +125,7 @@
         mount = /reader/legacy=reader._app.legacy.wsgi:app
         plugin = python3
         virtualenv = /apps/reader/
-        env = READER_CONFIG=/apps/reader/reader-legacy.yaml
+        env = READER_CONFIG=/apps/reader/reader-legacy.toml
         logto = /var/log/reader/uwsgi-legacy.log
 
         max-requests = 100
@@ -206,14 +206,14 @@
       user: www-data
       job: >
         LC_ALL=en_US.utf-8
-        READER_CONFIG=/apps/reader/reader.yaml
+        READER_CONFIG=/apps/reader/reader.toml
         /apps/reader/bin/python -m reader
         --cli-plugin reader._plugins.cli_status.init_cli
         update --workers 2 --scheduled
         >>/var/log/reader/update.log 2>&1
         &&
         LC_ALL=en_US.utf-8
-        READER_CONFIG=/apps/reader/reader.yaml
+        READER_CONFIG=/apps/reader/reader.toml
         /apps/reader/bin/python -m reader search update
         >>/var/log/reader/update.log 2>&1
 
