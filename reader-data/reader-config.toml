@@ -8,6 +8,7 @@ plugins = [
     ".entry_dedupe",
     ".readtime",
     ".enclosure_dedupe",
+    ".autodiscover",
     "reader._plugins.timer",
 ]
 
@@ -16,3 +17,6 @@ verbose = 3
 
 [reader.search.update]
 verbose = 1
+
+[reader.web]
+cache_dir = "/tmp/reader"
